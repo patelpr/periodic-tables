@@ -1,3 +1,5 @@
+git subtree push --prefix front-end heroku-client main
+git subtree push --prefix back-end heroku-backend main
 
 # Capstone: Restaurant Reservation System
 
