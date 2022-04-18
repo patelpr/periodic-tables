@@ -1,7 +1,22 @@
 const service = require("./reservations.service");
 const asyncErrorBoundary = require("../errors/asyncErrorBoundary");
 const hasProperties = require("../errors/hasProperties");
-
+function checkErrors(req, res, next) {
+	if (res.locals.errorsArray) {
+		next({
+			status: 400,
+			message: res.locals.errorsArray.join(" "),
+		});
+	}
+	next();
+}
+function init(req, res, next) {
+	res.locals.errorsArray = [];
+	next();
+}
+function newErr(message) {
+	newErr(message);
+}
 function queryDate(req, res, next) {
 	let today = new Date();
 	today = today && today.toISOString().split("T")[0];
@@ -27,7 +42,6 @@ async function createReservation(req, res) {
 	let reservation = req.body.data;
 	reservation = { ...reservation, status: "booked" };
 	const data = await service.create(reservation);
-	console.log(data);
 	res.status(201).json({ data });
 }
 function validProps(req, res, next) {
@@ -47,12 +61,9 @@ function validProps(req, res, next) {
 				"updated_at",
 			].includes(column)
 	);
-	return notInTable.length
-		? next({
-				status: 400,
-				message: `Column(s) dont exist on table: ${notInTable.join(", ")}`,
-		  })
-		: next();
+	notInTable.length &&
+		newErr(`Column(s) dont exist on table: ${notInTable.join(", ")}`);
+	next();
 }
 const checkReqProps = hasProperties(
 	...[
@@ -67,21 +78,15 @@ const checkReqProps = hasProperties(
 
 function partySize(req, res, next) {
 	let { people } = req.body.data;
-	if (people && people >= 1 && Number.isInteger(people)) {
-		return next();
-	}
-	return next({ status: 400, message: `Not enought people in your party` });
+	people < 1 && Number(people) && newErr(`Can't have a party of 0.`);
+	next();
 }
 function valiDate(req, res, next) {
 	const { reservation_time, reservation_date } = req.body.data;
 	let resDate = new Date((reservation_date + " ").concat(reservation_time));
-	console.log(resDate);
-
-	if (resDate == "Invalid Date" || !resDate) {
-		next({
-			status: 400,
-			message: `reservation_date or reservation_time is invalid`,
-		});
+	if (!resDate.getMonth() || resDate == "Invalid Date") {
+		newErr(`reservation_date or reservation_time is invalid`);
+		next();
 	} else {
 		res.locals.reservation_date = resDate;
 		next();
@@ -89,16 +94,20 @@ function valiDate(req, res, next) {
 }
 function futureDate(req, res, next) {
 	const { reservation_date } = res.locals;
-	return Date.now() >= reservation_date
-		? next({ status: 400, message: `Must be a future date.` })
-		: next();
+	Date.now() >= reservation_date && newErr(`Must be a future date.`);
+	next();
 }
 function closedTuesday(req, { locals }, next) {
-	return locals.reservation_date.getDay() === 2
-		? next({ status: 400, message: `Sorry, closed on Tuesdays` })
-		: next();
+	if (!locals.reservation_date) {
+		newErr(`Reservations are available from 10:30am to 9:30pm`);
+	}
+	locals.reservation_date.getDay() === 2 && newErr(`Sorry, closed on Tuesdays`);
+	next();
 }
 function withinHours(req, { locals }, next) {
+	if (!locals.reservation_date) {
+		newErr(`Reservations are available from 10:30am to 9:30pm`);
+	}
 	let constraint = {
 		opening: new Date(
 			locals.reservation_date.getFullYear(),
@@ -115,35 +124,29 @@ function withinHours(req, { locals }, next) {
 			30
 		),
 	};
-	return constraint.closing <= locals.reservation_date ||
-		constraint.opening >= locals.reservation_date
-		? next({
-				status: 400,
-				message: `Reservations are available from 10:30am to 9:30pm`,
-		  })
-		: next();
+	constraint.closing <= locals.reservation_date ||
+		(constraint.opening >= locals.reservation_date &&
+			newErr(`Reservations are available from 10:30am to 9:30pm`));
+	next();
 }
 function isAvailable(req, res, next) {
 	const { status } = req.body.data;
-	return status !== "booked" && status
-		? next({
-				status: 400,
-				message: `New reservations must be marked as booked.`,
-		  })
-		: next();
+	status !== "booked" &&
+		status &&
+		newErr(`New reservations must be marked as booked.`);
+	next();
 }
 async function reservationExists(req, res, next) {
 	const { reservation_id } = req.params;
 
-	const reservation = await service.read(reservation_id);
+	const reservation = reservation_id && (await service.read(reservation_id));
 	if (reservation) {
 		res.locals.reservation = reservation;
-		return next();
+		next();
+	} else {
+		newErr(`Reservation ${reservation_id} cannot be found.`);
+		next();
 	}
-	next({
-		status: 404,
-		message: `Reservation ${reservation_id} cannot be found.`,
-	});
 }
 function getDate(date) {
 	return `${date.getFullYear().toString(10)}-${(date.getMonth() + 1)
@@ -162,9 +165,11 @@ async function read(req, res) {
 function hasStatus(req, res, next) {
 	const { data = {} } = req.body;
 	if (data.status) {
-		return next();
+		next();
+	} else {
+		newErr(`status is a required field`);
+		next();
 	}
-	next({ status: 400, message: `status is a required field` });
 }
 function validStatus(req, res, next) {
 	const { status } = req.body.data;
@@ -172,17 +177,18 @@ function validStatus(req, res, next) {
 
 	if (validStatus.includes(status)) {
 		res.locals.status = status;
-		return next();
+		next();
+	} else {
+		newErr(
+			`Status must be booked, seated, or finished${status} is not a valid status.`
+		);
+		next();
 	}
-	next({
-		status: 400,
-		message: `Status must be booked, seated, or finished${status} is not a valid status.`,
-	});
 }
 function unfinishedReservationOnly(req, res, next) {
-	return res.locals.reservation.status === "finished"
-		? next({ status: 400, message: "This reservation is already complete." })
-		: next();
+	res.locals.reservation.status === "finished" &&
+		newErr("This reservation is already complete.");
+	next();
 }
 async function updateStatus(req, res) {
 	const { status, reservation } = res.locals;
@@ -203,36 +209,42 @@ async function update(req, res) {
 }
 
 module.exports = {
-	list: [queryDate, queryMobile, asyncErrorBoundary(listAll)],
+	list: [queryDate, queryMobile, checkErrors, asyncErrorBoundary(listAll)],
 	create: [
+		init,
 		validProps,
 		checkReqProps,
-		partySize,
 		valiDate,
 		closedTuesday,
 		futureDate,
+		partySize,
 		withinHours,
 		isAvailable,
+		checkErrors,
 		asyncErrorBoundary(createReservation),
 	],
-	read: [asyncErrorBoundary(reservationExists), asyncErrorBoundary(read)],
+	read: [init, asyncErrorBoundary(reservationExists), asyncErrorBoundary(read)],
 	updateStatus: [
+		init,
 		hasStatus,
 		validStatus,
 		asyncErrorBoundary(reservationExists),
 		unfinishedReservationOnly,
+		checkErrors,
 		asyncErrorBoundary(updateStatus),
 	],
 	update: [
+		init,
 		asyncErrorBoundary(reservationExists),
 		validProps,
 		checkReqProps,
-		partySize,
 		valiDate,
 		closedTuesday,
 		futureDate,
 		withinHours,
+		partySize,
 		isAvailable,
+		checkErrors,
 		asyncErrorBoundary(update),
 	],
 };

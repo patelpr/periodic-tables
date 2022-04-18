@@ -1,8 +1,6 @@
-import React, { useState } from "react";
+import React from "react";
 import { useHistory } from "react-router-dom";
 import { changeStatus } from "../../utils/api";
-import { formatAsDate, formatAsTime } from "../../utils/date-time";
-import ErrorAlert from "../ErrorAlert";
 function Reservation({
 	reservation: {
 		reservation_id,
@@ -14,93 +12,65 @@ function Reservation({
 		people,
 		status = "booked",
 	},
-	loadReservations,
+	loadDashboard,
+	setError,
 }) {
 	const history = useHistory();
-	const [error, setError] = useState(null);
 	const color = {
 		booked: "success",
 		seated: "primary",
 		finished: "secondary",
 		cancelled: "danger",
 	};
-	const handleCancel = (event) => {
-		event.preventDefault();
-		const message = `Do you want to cancel this reservation? This cannot be undone.`;
-		if (window.confirm(message)) {
+	function handleCancel(e) {
+		e.preventDefault();
+
+		if (window.confirm(`Cancel reservation?`)) {
 			const abortController = new AbortController();
 			setError(null);
 			changeStatus(reservation_id, "cancelled", abortController.signal)
-				.then(() => {
-					loadReservations();
-				})
+				.then(loadDashboard)
 				.catch(setError);
 			return () => abortController.abort();
 		}
-	};
+	}
 
 	return (
 		<>
-			{error && <ErrorAlert error={error} />}
-
-			<div className={`card border-${color[status]} mb-3 p-1`}>
-				<div className="card-horizontal row">
-					<span className="cols col-1">
-						<button
-							type="button"
-							className={`btn disabled btn-${color[status]}`}
-							style={{ width: "100%" }}
-						>
-							{status}
-						</button>
-					</span>
-					<span className="cols col-1 btn btn-text">
-						Party of-
-						<span className={`badge badge-info`}>{people} </span>
-					</span>
-					<span className="cols col-5 btn btn-text ">
-						{first_name} {last_name}
-					</span>
-					<span className="cols col-1 btn btn-text ">{mobile_number}</span>
-					<span className="cols col-1 btn btn-text ">
-						{formatAsDate(reservation_date)}
-					</span>
-					<span className="cols col-1 btn btn-text">
-						{formatAsTime(reservation_time)}
-					</span>
-					<span
-						className="cols col-1 btn-group"
-						role="group"
-						aria-label="Basic example"
+			<tr className={`table-${color[status]}`}>
+				<th scope="row">{status}</th>
+				<td>{`${first_name} ${last_name}`}</td>
+				<td>{people}</td>
+				<td>{mobile_number}</td>
+				<td>{reservation_date}</td>
+				<td>{reservation_time}</td>
+				<td>
+					<button
+						disabled={status !== "booked"}
+						type="button"
+						onClick={() => history.push(`/reservations/${reservation_id}/seat`)}
+						className="btn btn-info m-1"
 					>
-						<button
-							type="button"
-							onClick={() =>
-								history.push(`/reservations/${reservation_id}/seat`)
-							}
-							className="btn btn-info"
-						>
-							Seat
-						</button>
-						<button
-							type="button"
-							onClick={() =>
-								history.push(`/reservations/${reservation_id}/edit`)
-							}
-							className="btn btn-secondary"
-						>
-							Edit
-						</button>
-						<button
-							type="button"
-							onClick={() => handleCancel()}
-							className="btn btn-danger"
-						>
-							Cancel
-						</button>
-					</span>
-				</div>
-			</div>
+						Seat
+					</button>
+					<button
+						disabled={status !== "booked"}
+						type="button"
+						onClick={() => history.push(`/reservations/${reservation_id}/edit`)}
+						className="btn btn-secondary m-1"
+					>
+						Edit
+					</button>
+					<button
+						disabled={status !== "booked"}
+						type="button"
+						onClick={(e) => handleCancel(e)}
+						className="btn btn-danger m-1"
+					>
+						Cancel
+					</button>
+				</td>
+			</tr>
 		</>
 	);
 }

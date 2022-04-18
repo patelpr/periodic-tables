@@ -59,9 +59,9 @@ async function fetchJson(url, options, onCancel) {
  */
 export async function listReservations(params, signal) {
 	const url = new URL(`${API_BASE_URL}/reservations`);
-	Object.entries(params).forEach(([key, value]) =>
-		url.searchParams.append(key, value.toString())
-	);
+	Object.entries(params).forEach(([key, value]) => {
+		url.searchParams.append(key, value.replace(/\D/g, ""));
+	});
 	return await fetchJson(url, { headers, signal }, [])
 		.then(formatReservationDate)
 		.then(formatReservationTime);
@@ -70,19 +70,25 @@ export async function listReservations(params, signal) {
 /**CREATE RESERVATION */
 
 export async function createReservation(reservation, signal) {
-	const url = new URL(`${API_BASE_URL}/reservations`);
-	const options = {
-		method: "POST",
-		headers,
-		body: JSON.stringify({ data: reservation }),
-		signal,
-	};
-	return await fetchJson(url, options, {});
+	return await fetchJson(
+		new URL(`${API_BASE_URL}/reservations`),
+		{
+			method: "POST",
+			headers,
+			body: JSON.stringify({ data: reservation }),
+			signal,
+		},
+		{}
+	);
 }
-
+/**RESERVATION BY ID */
+export async function readReservation(id, signal) {
+	const url = `${API_BASE_URL}/reservations/${id}`;
+	return await fetchJson(url, { signal }, {});
+}
 /**RESERVATION STATUS CHANGE */
-export async function changeStatus(reservation_id, status, signal) {
-	const url = `${API_BASE_URL}/reservations/${reservation_id}/status`;
+export async function changeStatus(id, status, signal) {
+	const url = `${API_BASE_URL}/reservations/${id}/status`;
 	const options = {
 		method: "PUT",
 		headers,
@@ -94,14 +100,16 @@ export async function changeStatus(reservation_id, status, signal) {
 
 /**RESERVATION DETAIL CHANGE */
 export async function updateReservation(reservation, reservation_id, signal) {
-	const url = `${API_BASE_URL}/reservations/${reservation_id}`;
-	const options = {
-		method: "PUT",
-		headers,
-		body: JSON.stringify({ data: { ...reservation } }),
-		signal,
-	};
-	return await fetchJson(url, options, { ...reservation });
+	return await fetchJson(
+		`${API_BASE_URL}/reservations/${reservation_id}`,
+		{
+			method: "PUT",
+			headers,
+			body: JSON.stringify({ data: { ...reservation } }),
+			signal,
+		},
+		{ ...reservation }
+	);
 }
 
 /** ************RESERVATION API ENDS HERE ************** */
@@ -127,17 +135,8 @@ export async function listTables(signal) {
 /**TABLES AVAILABLE */
 export async function listTablesAvailable(params, signal) {
 	const url = new URL(`${API_BASE_URL}/tables/free`);
-	Object.entries(params).forEach(([key, value]) =>
-		url.searchParams.append(key, value.toString())
-	);
 	return await fetchJson(url, { headers, signal }, []);
 }
-/**RESERVATION BY ID */
-export async function readReservation(reservation_id, signal) {
-	const url = `${API_BASE_URL}/reservations/${reservation_id}`;
-	return await fetchJson(url, { signal }, {});
-}
-
 /** TABLE ASSIGNMENT BY RESERVATION ID AND TABLE ID */
 export async function assignTable(reservation_id, table_id, signal) {
 	const url = `${API_BASE_URL}/tables/${table_id}/seat`;

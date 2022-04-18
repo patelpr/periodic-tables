@@ -102,3 +102,29 @@ export function next(currentDate) {
 	date.setDate(date.getDate() + 1);
 	return asDateString(date);
 }
+
+export function valiDate(reservation_date) {
+	if (reservation_date.getDay() === 2 || reservation_date < Date.now()) {
+		return false;
+	}
+	let constraint = {
+		opening: new Date(
+			reservation_date.getFullYear(),
+			reservation_date.getMonth(),
+			reservation_date.getDate(),
+			10,
+			30
+		),
+		closing: new Date(
+			reservation_date.getFullYear(),
+			reservation_date.getMonth(),
+			reservation_date.getDate(),
+			21,
+			30
+		),
+	};
+	return constraint.closing >= reservation_date ||
+		constraint.opening <= reservation_date
+		? true
+		: false;
+}

@@ -9,22 +9,23 @@ import ErrorAlert from "../ErrorAlert";
 
 function Seat() {
 	const history = useHistory();
-	const reservation_id = useParams().reservation_id;
+	const { reservationId } = useParams();
 	const [reservation, setReservations] = useState({});
+	const [selectedTable, setSelectedTable] = useState("");
 	const [tables, setTables] = useState([]);
 	const [error, setError] = useState(null);
 	useEffect(
-		function fetchReservations() {
+		function getReservations() {
 			const abortController = new AbortController();
-			readReservation(reservation_id, abortController.signal)
+			readReservation(reservationId, abortController.signal)
 				.then(setReservations)
 				.catch(setError);
 			return () => abortController.abort();
 		},
-		[reservation_id]
+		[reservationId]
 	);
 	useEffect(
-		function fetchAvailableTables() {
+		function getAvailableTables() {
 			const abortController = new AbortController();
 			listTablesAvailable(
 				{ capacity: reservation.people },
@@ -40,34 +41,40 @@ function Seat() {
 		},
 		[reservation.people]
 	);
-
 	function handleSubmit(e) {
 		e.preventDefault();
-		assignTable(e.target.tableselect);
-		history.push("/dashboard");
+		assignTable(reservation.reservation_id, selectedTable)
+			.then(history.push("/dashboard"))
+			.catch(setError);
 	}
 	return (
 		<div>
-			{error&& <ErrorAlert error={error} />} 
+			{error && <ErrorAlert error={error} />}
 			<h2>Seat Selection</h2>
-			<form onSubmit={handleSubmit()}>
-				<select
-					className="form-select form-select-lg mb-3"
-					size="5"
-					name="table_id"
-				>
-					{tables.map((table) => {
-						return (
-							<option
-								name="table-select"
-								value={`${table.table_name} - ${table.capacity}`}
-							>
-								{table.table_name} - {table.capacity}
-							</option>
-						);
-					})}
-				</select>
-				<button type="submit">Submit</button>
+			<form onSubmit={(e) => handleSubmit(e)}>
+				<div className="form-group col-md-4 form-row align-items-center">
+					<label for="inputState">Table Selection:</label>
+					<select
+						name="tableselect"
+						onChange={({ target: { value } }) => setSelectedTable(value)}
+						id="inputState"
+						value={selectedTable}
+						className="form-control"
+					>
+						<option selected>Pick available Table</option>
+
+						{tables.map((option, i) => {
+							return (
+								<option key={i} value={option.table_id}>
+									{option.table_name} - {option.capacity}
+								</option>
+							);
+						})}
+					</select>
+					<button className="btn btn-dark mt-3" type="submit">
+						Submit
+					</button>
+				</div>
 			</form>
 		</div>
 	);

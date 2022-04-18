@@ -2,12 +2,12 @@ const router = require("express").Router();
 const controller = require("./tables.controller");
 const methodNotAllowed = require("../errors/methodNotAllowed");
 
-router.route("/free").get(controller.listFree).all(methodNotAllowed);
+router.route("/free").get(controller.available).all(methodNotAllowed);
 
 router
   .route("/:table_id/seat/")
-  .put(controller.seat)
-  .delete(controller.unseat)
+  .put(controller.occupy)
+  .delete(controller.remove)
   .all(methodNotAllowed);
 
 router

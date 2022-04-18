@@ -1,38 +1,13 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useHistory, useParams } from "react-router";
 import { readReservation, updateReservation } from "../../utils/api";
-import { today } from "../../utils/date-time";
+import { today, valiDate } from "../../utils/date-time";
 import ErrorAlert from "../ErrorAlert";
 
 export const EditReservation = () => {
 	const history = useHistory();
 	const { reservationId } = useParams();
 
-	const valiDate = (reservation_date) => {
-		if (reservation_date.getDay() === 2 || reservation_date < Date.now()) {
-			return false;
-		}
-		let constraint = {
-			opening: new Date(
-				reservation_date.getFullYear(),
-				reservation_date.getMonth(),
-				reservation_date.getDate(),
-				10,
-				30
-			),
-			closing: new Date(
-				reservation_date.getFullYear(),
-				reservation_date.getMonth(),
-				reservation_date.getDate(),
-				21,
-				30
-			),
-		};
-		return constraint.closing >= reservation_date ||
-			constraint.opening <= reservation_date
-			? true
-			: false;
-	};
 	/**state */
 	const [error, setError] = useState();
 	const [reservation, setReservation] = useState({
@@ -45,11 +20,21 @@ export const EditReservation = () => {
 	});
 	/** end state */
 
+	useEffect(
+		function loadReservation() {
+			const abortController = new AbortController();
+			readReservation(reservationId, abortController.signal)
+				.then(setReservation)
+				.catch(setError);
+
+			return () => abortController.abort();
+		},
+		[reservationId]
+	);
+
 	/**submit form */
-	const submitHandler = async (e) => {
+	async function submitHandler(e) {
 		e.preventDefault();
-		console.log(e);
-		console.log(reservation);
 		if (
 			!valiDate(
 				new Date(
@@ -63,20 +48,23 @@ export const EditReservation = () => {
 			reservation.time = "";
 			setError("Only business hours of future dates available.");
 		} else {
-			const { signal, abort } = new AbortController();
-			await updateReservation(reservation, signal)
+			const abortController = new AbortController().signal;
+			await updateReservation(
+				reservation,
+				reservationId,
+				abortController.signal
+			)
 				.then(() => {
 					history.push(`/dashboard?date=${reservation.reservation_date}`);
 				})
 				.catch(setError);
-			return () => abort();
+			return () => abortController.abort();
 		}
-
-		history.go("/dashboard/" + e.target.reservation_date);
-		console.log(e);
-	};
+		history.go("/dashboard");
+	}
 	return (
-		<div>
+		<div className="container">
+			<h1>Edit reservation</h1>
 			{error && <ErrorAlert error={error} />}
 
 			<form onSubmit={submitHandler}>
@@ -90,7 +78,7 @@ export const EditReservation = () => {
 						placeholder="First name"
 						id="first_name"
 						name="first_name"
-						// value={reservation.first_name}
+						value={reservation.first_name}
 						onChange={(e) =>
 							setReservation({
 								...reservation,
@@ -108,9 +96,8 @@ export const EditReservation = () => {
 						type="text"
 						placeholder="Last name"
 						id="last_name"
+						value={reservation.last_name}
 						name="last_name"
-						// value={reservation.last_name}
-
 						onChange={(e) =>
 							setReservation({
 								...reservation,
@@ -129,8 +116,7 @@ export const EditReservation = () => {
 						placeholder="Mobile number"
 						id="mobile_number"
 						name="mobile_number"
-						// value={reservation.mobile_number}
-
+						value={reservation.mobile_number}
 						onChange={(e) =>
 							setReservation({
 								...reservation,
@@ -147,7 +133,7 @@ export const EditReservation = () => {
 						min={today()}
 						id="reservation_date"
 						name="reservation_date"
-						// value={reservation.reservation_date}
+						value={reservation.reservation_date}
 						type="date"
 						onChange={(e) =>
 							setReservation({
@@ -163,6 +149,7 @@ export const EditReservation = () => {
 						aria-label="reservation_time"
 						className="form-control"
 						min="10:30"
+						value={reservation.reservation_time}
 						max="21:30"
 						id="reservation_time"
 						name="reservation_time"
@@ -180,6 +167,7 @@ export const EditReservation = () => {
 					<input
 						aria-label="people"
 						className="form-control"
+						value={reservation.people}
 						type="text"
 						placeholder="Number of people"
 						id="people"

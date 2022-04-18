@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { useHistory } from "react-router";
 import { createTable } from "../../utils/api";
-
 import ErrorAlert from "../ErrorAlert";
 export const NewTables = () => {
 	const [error, setError] = useState();
@@ -10,23 +9,27 @@ export const NewTables = () => {
 		capacity: 0,
 	});
 	let history = useHistory();
-	const submitHandler = (e) => {
+	function submitHandler(e) {
 		e.preventDefault();
-
-		const { signal, abort } = new AbortController();
-		createTable(table, signal)
+		const abortController = new AbortController();
+		createTable(table, abortController.signal)
 			.then(() => {
 				history.push("/dashboard");
 			})
 			.catch(setError);
-		return () => abort();
-	};
+		return () => abortController.abort();
+	}
 	return (
 		<div>
-			{error && <ErrorAlert error={error} />}
-			<form onSubmit={submitHandler}>
-				<div className="form-group">
-					<label htmlFor="table_name">Table name:</label>
+			<form onSubmit={submitHandler} className="container">
+				{error && <ErrorAlert error={error} />}
+				<h1>New Table</h1>
+				<div className="form-group  input-group">
+					<div className="input-group-prepend">
+						<span className="input-group-text" id="basic-addon1">
+							Table Name
+						</span>
+					</div>
 					<input
 						aria-label="table_name"
 						className="form-control"
@@ -36,13 +39,18 @@ export const NewTables = () => {
 						name="table_name"
 						onChange={(e) =>
 							setTable({
+								...table,
 								table_name: e.target.value.replace(/[^A-z]/, ""),
 							})
 						}
 					/>{" "}
 				</div>
-				<div className="form-group">
-					<label htmlFor="capacity">Last name:</label>
+				<div className="form-group  input-group">
+					<div className="input-group-prepend">
+						<span className="input-group-text" id="basic-addon1">
+							Number of Seats
+						</span>
+					</div>
 					<input
 						aria-label="capacity"
 						className="form-control"
@@ -51,9 +59,7 @@ export const NewTables = () => {
 						id="capacity"
 						name="capacity"
 						onChange={(e) =>
-							setTable({
-								capacity: e.target.value.replace(/\D/, ""),
-							})
+							setTable({ ...table, capacity: e.target.value.replace(/\D/, "") })
 						}
 					/>{" "}
 				</div>

@@ -1,8 +1,8 @@
 const knex = require("../db/connection");
 
-
 /**CREATE */
 function create(reservation) {
+    console.log(reservation)
 	return knex("reservations")
 		.insert(reservation)
 		.returning("*")
@@ -12,35 +12,36 @@ function create(reservation) {
 function read(reservation_id) {
 	return knex("reservations").select("*").where({ reservation_id }).first();
 }
-async function list(date) {
+async function list(reservation_date) {
 	return knex("reservations")
 		.select("*")
-		.where({ status: "booked", reservation_date: date })
-		.orWhere({ status: "seated", reservation_date: date });
-	// .orderBy("reservation_time");
-}
+		.where({ reservation_date })
+		.orderBy("reservation_time");
 
-// list of reservations that match search criteria (phone number)
+
+}
 async function searchList(mobile_number) {
 	return knex("reservations")
-		.where({ mobile_number })
+		.where("mobile_number", "like", mobile_number)
 		.orderBy("reservation_date");
 }
 /**UPDATE */
 
-
 function update(updated) {
+	const { reservation_id } = updated;
+
 	return knex("reservations")
 		.select("*")
-		.where({ reservation_id: updated.reservation_id })
+		.where({ reservation_id })
 		.update(updated, "*")
 		.returning("*")
 		.then((updatedRecord) => updatedRecord[0]);
 }
 function updateStatus(reservation) {
+	const { reservation_id } = reservation;
 	return knex("reservations")
 		.select("*")
-		.where({ reservation_id: reservation.reservation_id })
+		.where({ reservation_id })
 		.update(reservation, "*")
 		.returning("*")
 		.then((updatedRecord) => updatedRecord[0]);
