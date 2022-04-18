@@ -1,28 +1,6 @@
 const dateFormat = /\d\d\d\d-\d\d-\d\d/;
 const timeFormat = /\d\d:\d\d/;
-// const days = [
-// 	"Sunday",
-// 	"Monday",
-// 	"Tuesday",
-// 	"Wednesday",
-// 	"Thursday",
-// 	"Friday",
-// 	"Saturday",
-// ];
-// const months = [
-// 	"Jan",
-// 	"Feb",
-// 	"Mar",
-// 	"Apr",
-// 	"May",
-// 	"Jun",
-// 	"Jul",
-// 	"Aug",
-// 	"Sep",
-// 	"Oct",
-// 	"Nov",
-// 	"Dec",
-// ];
+
 /**
  * Formats a Date object as YYYY-MM-DD.
  *
@@ -103,28 +81,32 @@ export function next(currentDate) {
 	return asDateString(date);
 }
 
-export function valiDate(reservation_date) {
-	if (reservation_date.getDay() === 2 || reservation_date < Date.now()) {
+export function valiDate(reservation) {
+	const { reservation_date, reservation_time } = reservation;
+	const [year, month, day] = reservation_date.split("-");
+	const [hour, min] = reservation_time.split(":");
+	let resDate = new Date(year, month, day, hour, min, "00");
+	if (resDate.getDay() === 2 || resDate.getTime() < Date.now()) {
 		return false;
 	}
+
 	let constraint = {
 		opening: new Date(
-			reservation_date.getFullYear(),
-			reservation_date.getMonth(),
-			reservation_date.getDate(),
+			resDate.getFullYear(),
+			resDate.getMonth(),
+			resDate.getDate(),
 			10,
 			30
 		),
 		closing: new Date(
-			reservation_date.getFullYear(),
-			reservation_date.getMonth(),
-			reservation_date.getDate(),
+			resDate.getFullYear(),
+			resDate.getMonth(),
+			resDate.getDate(),
 			21,
 			30
 		),
 	};
-	return constraint.closing >= reservation_date ||
-		constraint.opening <= reservation_date
+	return constraint.closing >= resDate || constraint.opening <= resDate
 		? true
 		: false;
 }

@@ -18,30 +18,24 @@ export const NewReservation = () => {
 	let history = useHistory();
 	const submitHandler = async (e) => {
 		e.preventDefault();
-		if (
-			!valiDate(
-				new Date(
-					(reservation.reservation_date + " ").concat(
-						reservation.reservation_time
-					)
-				)
-			)
-		) {
-			reservation.date = "";
-			reservation.time = "";
+		console.log(reservation);
+		if (!valiDate(reservation)) {
+			setReservation({
+				...reservation,
+				reservation_date: "",
+				reservation_time: "",
+			});
 			setError("Only business hours of future dates available.");
-		} else {
-			const { signal, abort } = new AbortController();
-            reservation.reservation_date = reservation.reservation_date.split('T')[0]
-			await createReservation(reservation, signal)
-				.then(() => {
-					history.push(`/dashboard?date=${reservation.reservation_date}`);
-				})
-				.catch(setError);
-			return () => abort();
+			return;
 		}
-
-		history.go("/dashboard/" + e.target.reservation_date);
+		const { signal, abort } = new AbortController();
+		await createReservation(reservation, signal)
+			.then(() => {
+				console.log(reservation.reservation_date);
+				history.push(`/dashboard?date=${reservation.reservation_date}`);
+			})
+			.catch(setError);
+		return () => abort();
 	};
 	return (
 		<div>
@@ -112,7 +106,7 @@ export const NewReservation = () => {
 							onChange={(e) =>
 								setReservation({
 									...reservation,
-									mobile_number: e.target.value.replace(/[^\d]/, ""),
+									mobile_number: e.target.value.replace(/[\D]/, ""),
 								})
 							}
 						/>
@@ -177,7 +171,7 @@ export const NewReservation = () => {
 							onChange={(e) =>
 								setReservation({
 									...reservation,
-									people: e.target.value.replace(/[^\d]/, ""),
+									people: e.target.value.replace(/[\D]/, ""),
 								})
 							}
 						/>
@@ -185,9 +179,10 @@ export const NewReservation = () => {
 					<button className="btn btn-primary" type="submit">
 						Submit
 					</button>
+
 					<button
 						className="btn btn-text"
-						onClick={() => history.go("/dashboard")}
+						onClick={() => history.push("/dashboard")}
 					>
 						Cancel
 					</button>

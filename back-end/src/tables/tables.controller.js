@@ -35,7 +35,7 @@ function checkTableName(req, res, next) {
 }
 function checkCapacityNum(req, res, next) {
 	let { capacity } = req.body.data;
-	return Number.isInteger(!capacity) || capacity < 1
+	return !Number.isInteger(capacity) || capacity < 1
 		? next({
 				status: 400,
 				message: `Invalid capacity field. Capacity must be a positive integer greater than 0`,
@@ -62,10 +62,10 @@ function isBooked(req, res, next) {
 	}
 	next({
 		status: 400,
-		message: `Reservation status ${status} is not valid`,
+		message: `${status} not valid`,
 	});
 }
-function hasCapacity(req, res, next) {
+function capacityExists(req, res, next) {
 	const { capacity } = res.locals.table;
 	const { people } = res.locals.reservation;
 
@@ -74,7 +74,7 @@ function hasCapacity(req, res, next) {
 	}
 	next({
 		status: 400,
-		message: `This Reservation requires a capacity of at least ${people}.`,
+		message: `${people} capacity is required.`,
 	});
 }
 function isAvailable(req, res, next) {
@@ -82,33 +82,52 @@ function isAvailable(req, res, next) {
 	if (reservation_id) {
 		return next({
 			status: 400,
-			message: `This table is occupied.`,
+			message: `Table occupied`,
 		});
 	}
-	next();
+	return next();
 }
 function isNotAvailable(req, res, next) {
 	const { reservation_id } = res.locals.table;
-	if (reservation_id) {
-		return next();
+	if (!reservation_id) {
+		return next({
+			status: 400,
+			message: `Table is not occupied.`,
+		});
 	}
-	next({
-		status: 400,
-		message: `Table is not seated.`,
-	});
+
+	return next();
+}
+function hasReservationId(req, res, next) {
+	if (!req.body.data.reservation_id) {
+		return next({
+			status: 400,
+			message: `reservation_id cannot be found.`,
+		});
+	}
+	return next();
+}
+function containsData(req, res, next) {
+	if (!req.body.data) {
+		return next({
+			status: 400,
+			message: `Data property is missing.`,
+		});
+	}
+	return next();
 }
 /**END MIDDLEWARE */
 /**DATABASE FUNCTIONS*/
 async function checkReservationId({ body }, res, next) {
 	const reservation = await reservationService.read(body.data.reservation_id);
-	if (reservation) {
-		res.locals.reservation = reservation;
-		return next();
+	if (!reservation) {
+		return next({
+			status: 404,
+			message: `Reservation ${body.data.reservation_id} cannot be found.`,
+		});
 	}
-	next({
-		status: 404,
-		message: `Reservation ${reservation_id} cannot be found.`,
-	});
+	res.locals.reservation = reservation;
+	return next();
 }
 async function findReservation(req, { locals }, next) {
 	const reservation = await reservationService.read(
@@ -171,11 +190,12 @@ module.exports = {
 	list: [asyncErrorBoundary(allTables)],
 	available: asyncErrorBoundary(availableTables),
 	occupy: [
-		checkReservationId,
+		containsData,
+		hasReservationId,
 		asyncErrorBoundary(checkReservationId),
 		isBooked,
 		asyncErrorBoundary(isTable),
-		hasCapacity,
+		capacityExists,
 		isAvailable,
 		asyncErrorBoundary(reservationToTable),
 	],

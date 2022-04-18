@@ -2,7 +2,6 @@ const knex = require("../db/connection");
 
 /**CREATE */
 function create(reservation) {
-    console.log(reservation)
 	return knex("reservations")
 		.insert(reservation)
 		.returning("*")
@@ -16,14 +15,12 @@ async function list(reservation_date) {
 	return knex("reservations")
 		.select("*")
 		.where({ reservation_date })
+		.whereNot({ status: "finished" })
 		.orderBy("reservation_time");
-
-
 }
 async function searchList(mobile_number) {
 	return knex("reservations")
-		.where("mobile_number", "like", mobile_number)
-		.orderBy("reservation_date");
+		.where("mobile_number", "like", `%${mobile_number}%`)
 }
 /**UPDATE */
 

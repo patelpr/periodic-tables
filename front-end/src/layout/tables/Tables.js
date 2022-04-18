@@ -11,8 +11,8 @@ function Table({ table, loadDashboard, setError, loadTables }) {
 		if (window.confirm(`Is this table available?`)) {
 			let abortController = new AbortController();
 			removeTable(table_id, abortController.signal)
-				.then(loadDashboard)
 				.then(loadTables)
+				.then(loadDashboard)
 				.then(history.push("/dashboard"))
 				.catch(setError);
 			return () => abortController.abort();

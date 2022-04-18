@@ -24,23 +24,21 @@ function Seat() {
 		},
 		[reservationId]
 	);
-	useEffect(
-		function getAvailableTables() {
-			const abortController = new AbortController();
-			listTablesAvailable(
-				{ capacity: reservation.people },
-				abortController.signal
-			)
-				.then((tables) =>
-					setTables(
-						tables.filter((table) => table.capacity >= reservation.people)
-					)
+	useEffect(getAvailableTables, [reservation.people]);
+	function getAvailableTables() {
+		const abortController = new AbortController();
+		listTablesAvailable(
+			{ capacity: reservation.people },
+			abortController.signal
+		)
+			.then((tables) =>
+				setTables(
+					tables.filter((table) => table.capacity >= reservation.people)
 				)
-				.catch(setError);
-			return () => abortController.abort();
-		},
-		[reservation.people]
-	);
+			)
+			.catch(setError);
+		return () => abortController.abort();
+	}
 	function handleSubmit(e) {
 		e.preventDefault();
 		assignTable(reservation.reservation_id, selectedTable)

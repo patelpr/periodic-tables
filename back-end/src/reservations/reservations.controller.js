@@ -19,7 +19,6 @@ async function listAll(req, res) {
 	const data = !mobileNumber
 		? await service.list(date)
 		: await service.searchList(mobileNumber);
-
 	res.json({ data });
 }
 
@@ -27,7 +26,6 @@ async function createReservation(req, res) {
 	let reservation = req.body.data;
 	reservation = { ...reservation, status: "booked" };
 	const data = await service.create(reservation);
-	console.log(data);
 	res.status(201).json({ data });
 }
 function validProps(req, res, next) {
@@ -67,6 +65,7 @@ const checkReqProps = hasProperties(
 
 function partySize(req, res, next) {
 	let { people } = req.body.data;
+	people = Number(people);
 	if (people && people >= 1 && Number.isInteger(people)) {
 		return next();
 	}
@@ -75,7 +74,6 @@ function partySize(req, res, next) {
 function valiDate(req, res, next) {
 	const { reservation_time, reservation_date } = req.body.data;
 	let resDate = new Date((reservation_date + " ").concat(reservation_time));
-	console.log(resDate);
 
 	if (resDate == "Invalid Date" || !resDate) {
 		next({
@@ -128,7 +126,7 @@ function isAvailable(req, res, next) {
 	return status !== "booked" && status
 		? next({
 				status: 400,
-				message: `New reservations must be marked as booked.`,
+				message: `New reservations cannot be finished, seated, or cancelled.`,
 		  })
 		: next();
 }
@@ -181,7 +179,7 @@ function validStatus(req, res, next) {
 }
 function unfinishedReservationOnly(req, res, next) {
 	return res.locals.reservation.status === "finished"
-		? next({ status: 400, message: "This reservation is already complete." })
+		? next({ status: 400, message: "This reservation is already finished." })
 		: next();
 }
 async function updateStatus(req, res) {
