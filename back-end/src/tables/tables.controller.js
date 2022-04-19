@@ -35,6 +35,7 @@ function checkTableName(req, res, next) {
 }
 function checkCapacityNum(req, res, next) {
 	let { capacity } = req.body.data;
+    capacity = Number(capacity)
 	return !Number.isInteger(capacity) || capacity < 1
 		? next({
 				status: 400,

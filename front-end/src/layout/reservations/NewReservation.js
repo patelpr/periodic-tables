@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useHistory } from "react-router";
 import { createReservation } from "../../utils/api";
-import { today, valiDate } from "../../utils/date-time";
+import { valiDate } from "../../utils/date-time";
 import ErrorAlert from "../ErrorAlert";
 
 export const NewReservation = () => {
@@ -16,27 +16,23 @@ export const NewReservation = () => {
 		status: "booked",
 	});
 	let history = useHistory();
-	const submitHandler = async (e) => {
+	async function submitHandler(e) {
 		e.preventDefault();
-		console.log(reservation);
-		if (!valiDate(reservation)) {
-			setReservation({
-				...reservation,
-				reservation_date: "",
-				reservation_time: "",
-			});
+		let dateCheck = valiDate(reservation, setError);
+		if (dateCheck) {
+			setReservation(dateCheck);
+		} else {
 			setError("Only business hours of future dates available.");
-			return;
 		}
+
 		const { signal, abort } = new AbortController();
 		await createReservation(reservation, signal)
-			.then(() => {
-				console.log(reservation.reservation_date);
-				history.push(`/dashboard?date=${reservation.reservation_date}`);
-			})
+			.then(() =>
+				history.push(`/dashboard?date=${reservation.reservation_date}`)
+			)
 			.catch(setError);
 		return () => abort();
-	};
+	}
 	return (
 		<div>
 			{error && <ErrorAlert error={error} />}
@@ -57,7 +53,6 @@ export const NewReservation = () => {
 							type="text"
 							id="first_name"
 							name="first_name"
-							// value={reservation.first_name}
 							onChange={(e) =>
 								setReservation({
 									...reservation,
@@ -78,8 +73,6 @@ export const NewReservation = () => {
 							type="text"
 							id="last_name"
 							name="last_name"
-							// value={reservation.last_name}
-
 							onChange={(e) =>
 								setReservation({
 									...reservation,
@@ -101,8 +94,6 @@ export const NewReservation = () => {
 							placeholder="123-456-7890"
 							id="mobile_number"
 							name="mobile_number"
-							// value={reservation.mobile_number}
-
 							onChange={(e) =>
 								setReservation({
 									...reservation,
@@ -120,17 +111,16 @@ export const NewReservation = () => {
 						<input
 							aria-label="reservation_date"
 							className="form-control"
-							min={today()}
+							// min={today()}
 							id="reservation_date"
 							name="reservation_date"
-							// value={reservation.reservation_date}
 							type="date"
-							onChange={(e) =>
+							onChange={(e) => {
 								setReservation({
 									...reservation,
 									reservation_date: e.target.value,
-								})
-							}
+								});
+							}}
 						/>
 					</div>
 					<div className="form-group input-group">
@@ -142,8 +132,8 @@ export const NewReservation = () => {
 						<input
 							aria-label="reservation_time"
 							className="form-control"
-							min="10:30"
-							max="21:30"
+							// min="10:30"
+							// max="21:30"
 							id="reservation_time"
 							name="reservation_time"
 							type="time"

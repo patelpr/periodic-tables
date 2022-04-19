@@ -65,7 +65,7 @@ export default function Search() {
 						</tr>
 					</thead>
 					<tbody>
-						{reservations ? (
+						{reservations.length ? (
 							reservations.map((reservation, i) => {
 								return (
 									<Reservation
@@ -78,13 +78,7 @@ export default function Search() {
 							})
 						) : (
 							<tr>
-								<td>N/A</td>
-								<td>N/A</td>
-								<td>N/A</td>
-								<td>N/A</td>
-								<td>N/A</td>
-								<td>N/A</td>
-								<td>N/A</td>
+								<td>No reservations found</td>
 							</tr>
 						)}
 					</tbody>

@@ -40,10 +40,10 @@ export const NewTables = () => {
 						onChange={(e) =>
 							setTable({
 								...table,
-								table_name: e.target.value.replace(/[^A-z]/, ""),
+								table_name: e.target.value,
 							})
 						}
-					/>{" "}
+					/>
 				</div>
 				<div className="form-group  input-group">
 					<div className="input-group-prepend">
@@ -61,7 +61,7 @@ export const NewTables = () => {
 						onChange={(e) =>
 							setTable({ ...table, capacity: e.target.value.replace(/\D/, "") })
 						}
-					/>{" "}
+					/>
 				</div>
 				<button className="btn btn-primary" type="submit">
 					Submit

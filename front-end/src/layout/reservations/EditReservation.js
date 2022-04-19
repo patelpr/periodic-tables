@@ -35,32 +35,20 @@ export const EditReservation = () => {
 	/**submit form */
 	async function submitHandler(e) {
 		e.preventDefault();
-		if (
-			!valiDate(
-				new Date(
-					(reservation.reservation_date + " ").concat(
-						reservation.reservation_time
-					)
-				)
-			)
-		) {
-			reservation.date = "";
-			reservation.time = "";
-			setError("Only business hours of future dates available.");
+		let dateCheck = valiDate(reservation, setError);
+		if (dateCheck) {
+			setReservation(dateCheck);
 		} else {
-			const abortController = new AbortController().signal;
-			await updateReservation(
-				reservation,
-				reservationId,
-				abortController.signal
-			)
-				.then(() => {
-					history.push(`/dashboard?date=${reservation.reservation_date}`);
-				})
-				.catch(setError);
-			return () => abortController.abort();
+			setError("Only business hours of future dates available.");
 		}
-		history.go("/dashboard");
+
+		const abortController = new AbortController();
+		await updateReservation(reservation, reservationId, abortController.signal)
+			.then(() => {
+				history.push(`/dashboard?date=${reservation.reservation_date}`);
+			})
+			.catch(setError);
+		return () => abortController.abort();
 	}
 	return (
 		<div className="container">
@@ -185,7 +173,7 @@ export const EditReservation = () => {
 				</button>
 				<button
 					className="btn btn-text"
-					onClick={() => history.go("/dashboard")}
+					onClick={() => history.push("/dashboard")}
 				>
 					Cancel
 				</button>

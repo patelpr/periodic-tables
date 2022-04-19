@@ -115,6 +115,7 @@ function Dashboard({ date }) {
 					<table className="table table-hover text-center">
 						<thead className="thead-dark">
 							<tr>
+								<th scope="col">Status</th>
 								<th scope="col">Capacity</th>
 								<th scope="col">Name</th>
 								<th scope="col">Action</th>
@@ -136,6 +137,7 @@ function Dashboard({ date }) {
 								<tr>
 									<td>PLEASE</td>
 									<td>CREATE</td>
+									<td>MORE</td>
 									<td>TABLES</td>
 								</tr>
 							)}

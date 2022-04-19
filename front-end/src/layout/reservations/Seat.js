@@ -31,46 +31,53 @@ function Seat() {
 			{ capacity: reservation.people },
 			abortController.signal
 		)
-			.then((tables) =>
-				setTables(
-					tables.filter((table) => table.capacity >= reservation.people)
-				)
-			)
+			.then(setTables)
 			.catch(setError);
 		return () => abortController.abort();
 	}
 	function handleSubmit(e) {
 		e.preventDefault();
-		assignTable(reservation.reservation_id, selectedTable)
-			.then(history.push("/dashboard"))
+		const abortController = new AbortController();
+
+		assignTable(
+			reservation.reservation_id,
+			selectedTable,
+			abortController.signal
+		)
+			.then(() => {
+				history.push(`/dashboard`);
+			})
 			.catch(setError);
+		return () => abortController.abort();
 	}
 	return (
 		<div>
 			{error && <ErrorAlert error={error} />}
 			<h2>Seat Selection</h2>
-			<form onSubmit={(e) => handleSubmit(e)}>
+			<form onSubmit={handleSubmit}>
 				<div className="form-group col-md-4 form-row align-items-center">
-					<label for="inputState">Table Selection:</label>
+					<h3>Table Selection:</h3>
 					<select
-						name="tableselect"
+						name="table_id"
 						onChange={({ target: { value } }) => setSelectedTable(value)}
 						id="inputState"
 						value={selectedTable}
 						className="form-control"
 					>
-						<option selected>Pick available Table</option>
-
-						{tables.map((option, i) => {
-							return (
-								<option key={i} value={option.table_id}>
-									{option.table_name} - {option.capacity}
-								</option>
-							);
-						})}
+						{tables.map((table, i) => (
+							<option key={i} value={table.table_id}>
+								{table.table_name} - {table.capacity}
+							</option>
+						))}
 					</select>
 					<button className="btn btn-dark mt-3" type="submit">
 						Submit
+					</button>
+					<button
+						className="btn btn-text mt-3"
+						onClick={() => history.goBack()}
+					>
+						Cancel
 					</button>
 				</div>
 			</form>

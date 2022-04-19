@@ -81,15 +81,23 @@ export function next(currentDate) {
 	return asDateString(date);
 }
 
-export function valiDate(reservation) {
-	const { reservation_date, reservation_time } = reservation;
-	const [year, month, day] = reservation_date.split("-");
-	const [hour, min] = reservation_time.split(":");
-	let resDate = new Date(year, month, day, hour, min, "00");
-	if (resDate.getDay() === 2 || resDate.getTime() < Date.now()) {
-		return false;
-	}
+export function valiDate(res, setError) {
+	const { reservation_date, reservation_time } = res;
+	let resDate;
+	let year;
+	let month;
+	let day;
+	let [hour, min] = reservation_time.split(":");
 
+	if (reservation_date.includes("-")) {
+		[year, month, day] = reservation_date.split("-");
+	} else {
+		let flat = reservation_date.split(/\d\d/);
+		year = `${flat[2]}${flat[3]}`;
+		month = flat[0];
+		day = flat[1];
+	}
+	resDate = new Date(year, month - 1, day, hour, min, "00");
 	let constraint = {
 		opening: new Date(
 			resDate.getFullYear(),
@@ -106,7 +114,11 @@ export function valiDate(reservation) {
 			30
 		),
 	};
-	return constraint.closing >= resDate || constraint.opening <= resDate
-		? true
-		: false;
+	res = { ...res, reservation_date: resDate.toISOString().split("T")[0] };
+	return constraint.closing < resDate ||
+		constraint.opening > resDate ||
+		resDate.getDay() === 2 ||
+		resDate.getTime() < Date.now()
+		? null
+		: res;
 }
