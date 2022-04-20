@@ -70,6 +70,8 @@ export async function listReservations(params, signal) {
 /**CREATE RESERVATION */
 
 export async function createReservation(reservation, signal) {
+	reservation.people = Number(reservation.people);
+
 	return await fetchJson(
 		new URL(`${API_BASE_URL}/reservations`),
 		{
@@ -119,6 +121,7 @@ export async function updateReservation(reservation, reservation_id, signal) {
 /**CREATE TABLE */
 export async function createTable(table, signal) {
 	const url = new URL(`${API_BASE_URL}/tables`);
+	table.capacity = Number(table.capacity);
 	const options = {
 		method: "POST",
 		headers,

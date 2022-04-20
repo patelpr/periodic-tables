@@ -65,11 +65,10 @@ const checkReqProps = hasProperties(
 
 function partySize(req, res, next) {
 	let { people } = req.body.data;
-	people = Number(people);
-	if (people && people >= 1 && Number.isInteger(people)) {
-		return next();
-	}
-	return next({ status: 400, message: `Not enought people in your party` });
+
+	return typeof people !== "number" || people < 1
+		? next({ status: 400, message: `Not enough people in your party` })
+		: next();
 }
 function valiDate(req, res, next) {
 	const { reservation_time, reservation_date } = req.body.data;

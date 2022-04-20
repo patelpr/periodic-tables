@@ -56,7 +56,7 @@ export const NewReservation = () => {
 							onChange={(e) =>
 								setReservation({
 									...reservation,
-									first_name: e.target.value.replace(/[^A-z]/, ""),
+									first_name: e.target.value,
 								})
 							}
 						/>
@@ -76,7 +76,7 @@ export const NewReservation = () => {
 							onChange={(e) =>
 								setReservation({
 									...reservation,
-									last_name: e.target.value.replace(/[^A-z]/, ""),
+									last_name: e.target.value,
 								})
 							}
 						/>
@@ -97,7 +97,7 @@ export const NewReservation = () => {
 							onChange={(e) =>
 								setReservation({
 									...reservation,
-									mobile_number: e.target.value.replace(/[\D]/, ""),
+									mobile_number: e.target.value,
 								})
 							}
 						/>
@@ -161,7 +161,7 @@ export const NewReservation = () => {
 							onChange={(e) =>
 								setReservation({
 									...reservation,
-									people: e.target.value.replace(/[\D]/, ""),
+									people: e.target.value,
 								})
 							}
 						/>

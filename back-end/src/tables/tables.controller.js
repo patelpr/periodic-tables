@@ -35,8 +35,8 @@ function checkTableName(req, res, next) {
 }
 function checkCapacityNum(req, res, next) {
 	let { capacity } = req.body.data;
-    capacity = Number(capacity)
-	return !Number.isInteger(capacity) || capacity < 1
+
+	return typeof capacity !== "number" || Number(!capacity) >= 1
 		? next({
 				status: 400,
 				message: `Invalid capacity field. Capacity must be a positive integer greater than 0`,
@@ -66,17 +66,18 @@ function isBooked(req, res, next) {
 		message: `${status} not valid`,
 	});
 }
-function capacityExists(req, res, next) {
-	const { capacity } = res.locals.table;
+function capacityAvailable(req, res, next) {
+	const { capacity } = res.locals.table || req.body.data;
 	const { people } = res.locals.reservation;
 
-	if (capacity >= people) {
+	if (capacity < people) {
+		return next({
+			status: 400,
+			message: `${people} capacity is required.`,
+		});
+	} else {
 		return next();
 	}
-	next({
-		status: 400,
-		message: `${people} capacity is required.`,
-	});
 }
 function isAvailable(req, res, next) {
 	const { reservation_id } = res.locals.table;
@@ -196,7 +197,7 @@ module.exports = {
 		asyncErrorBoundary(checkReservationId),
 		isBooked,
 		asyncErrorBoundary(isTable),
-		capacityExists,
+		capacityAvailable,
 		isAvailable,
 		asyncErrorBoundary(reservationToTable),
 	],

@@ -14,6 +14,8 @@ export const NewTables = () => {
 		const abortController = new AbortController();
 		createTable(table, abortController.signal)
 			.then(() => {
+				console.log(table);
+
 				history.push("/dashboard");
 			})
 			.catch(setError);
@@ -58,9 +60,7 @@ export const NewTables = () => {
 						placeholder="Capacity"
 						id="capacity"
 						name="capacity"
-						onChange={(e) =>
-							setTable({ ...table, capacity: e.target.value.replace(/\D/, "") })
-						}
+						onChange={(e) => setTable({ ...table, capacity: e.target.value })}
 					/>
 				</div>
 				<button className="btn btn-primary" type="submit">
