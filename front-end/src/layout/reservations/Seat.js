@@ -69,7 +69,7 @@ function Seat() {
 						className="form-control"
 					>
 						{tables.map((table, i) => (
-							<option key={i} value={table.table_id}>
+							<option key={table.table_id} value={table.table_id}>
 								{table.table_name} - {table.capacity}
 							</option>
 						))}

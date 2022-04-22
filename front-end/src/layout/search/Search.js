@@ -69,7 +69,7 @@ export default function Search() {
 							reservations.map((reservation, i) => {
 								return (
 									<Reservation
-										key={i}
+										key={reservation.reservation_id}
 										reservation={reservation}
 										loadDashboard={loadReservations}
 										setError={setError}

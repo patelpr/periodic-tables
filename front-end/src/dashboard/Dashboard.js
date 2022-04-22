@@ -90,7 +90,7 @@ function Dashboard({ date }) {
 								reservations.map((reservation, i) => {
 									return (
 										<Reservation
-											key={i}
+											key={reservation.reservation_id}
 											reservation={reservation}
 											loadDashboard={loadDashboard}
 											setError={setError}
@@ -126,7 +126,7 @@ function Dashboard({ date }) {
 								tables.map((table, i) => {
 									return (
 										<Table
-											key={i}
+											key={table.table_id}
 											table={table}
 											loadDashboard={loadDashboard}
 											loadTables={loadTables}
