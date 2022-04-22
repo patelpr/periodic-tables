@@ -40,32 +40,11 @@ function Reservation({
 					{status}
 				</th>
 
-
-
-
-
-
-
-
-
-
 				<td>{first_name + " " + last_name}</td>
 				<td>{people}</td>
 				<td>{mobile_number}</td>
 				<td>{reservation_date}</td>
 				<td>{reservation_time}</td>
-
-
-
-
-
-
-
-
-
-
-
-
 
 				<td>
 					{status === "seated" || (

@@ -1,7 +1,6 @@
 const service = require("./reservations.service");
 const asyncErrorBoundary = require("../errors/asyncErrorBoundary");
 const hasProperties = require("../errors/hasProperties");
-
 function queryDate(req, res, next) {
 	let today = new Date();
 	today = today && today.toISOString().split("T")[0];
@@ -14,44 +13,7 @@ function queryMobile({ query }, { locals }, next) {
 		: null;
 	next();
 }
-async function listAll(req, res) {
-	const { date, mobileNumber } = res.locals;
-	const data = !mobileNumber
-		? await service.list(date)
-		: await service.searchList(mobileNumber);
-	res.json({ data });
-}
 
-async function createReservation(req, res) {
-	let reservation = req.body.data;
-	reservation = { ...reservation, status: "booked" };
-	const data = await service.create(reservation);
-	res.status(201).json({ data });
-}
-function validProps(req, res, next) {
-	const { data = {} } = req.body;
-	const notInTable = Object.keys(data).filter(
-		(column) =>
-			![
-				"reservation_id",
-				"first_name",
-				"last_name",
-				"people",
-				"mobile_number",
-				"status",
-				"reservation_date",
-				"reservation_time",
-				"created_at",
-				"updated_at",
-			].includes(column)
-	);
-	return notInTable.length
-		? next({
-				status: 400,
-				message: `Column(s) dont exist on table: ${notInTable.join(", ")}`,
-		  })
-		: next();
-}
 const checkReqProps = hasProperties(
 	...[
 		"first_name",
@@ -65,55 +27,61 @@ const checkReqProps = hasProperties(
 
 function partySize(req, res, next) {
 	let { people } = req.body.data;
-
 	return typeof people !== "number" || people < 1
 		? next({ status: 400, message: `Not enough people in your party` })
 		: next();
 }
-function valiDate(req, res, next) {
+function valiDate(req, { locals }, next) {
 	const { reservation_time, reservation_date } = req.body.data;
-	let resDate = new Date((reservation_date + " ").concat(reservation_time));
+	let [hour, min] = reservation_time.split(":");
+	let [year, month, day] = reservation_date.split("-");
+	let resDate = new Date(Date.UTC(year, month - 1, day, hour, min));
 
 	if (resDate == "Invalid Date" || !resDate) {
 		next({
 			status: 400,
-			message: `reservation_date or reservation_time is invalid`,
+			message: `reservation_date or reservation_time is invalid/missing`,
 		});
 	} else {
-		res.locals.reservation_date = resDate;
+        locals.resDate = resDate
+		locals.reservation_date = locals.resDate.toISOString().split("T")[0];
+		locals.reservation_time = reservation_time;
 		next();
 	}
 }
-function futureDate(req, res, next) {
-	const { reservation_date } = res.locals;
-	return Date.now() >= reservation_date
+function futureDate(req, { locals }, next) {
+	return new Date().getTime() >= locals.resDate.getTime()
 		? next({ status: 400, message: `Must be a future date.` })
 		: next();
 }
 function closedTuesday(req, { locals }, next) {
-	return locals.reservation_date.getDay() === 2
-		? next({ status: 400, message: `Sorry, closed on Tuesdays` })
+	return locals.resDate.getDay() === 2
+		? next({ status: 400, message: `We are closed on Tuesdays` })
 		: next();
 }
 function withinHours(req, { locals }, next) {
 	let constraint = {
 		opening: new Date(
-			locals.reservation_date.getFullYear(),
-			locals.reservation_date.getMonth(),
-			locals.reservation_date.getDate(),
-			10,
-			30
-		),
+			Date.UTC(
+				locals.resDate.getUTCFullYear(),
+				locals.resDate.getUTCMonth(),
+				locals.resDate.getUTCDate(),
+				10,
+				30
+			)
+		).getTime(),
 		closing: new Date(
-			locals.reservation_date.getFullYear(),
-			locals.reservation_date.getMonth(),
-			locals.reservation_date.getDate(),
-			21,
-			30
-		),
+			Date.UTC(
+				locals.resDate.getUTCFullYear(),
+				locals.resDate.getUTCMonth(),
+				locals.resDate.getUTCDate(),
+				21,
+				30
+			)
+		).getTime(),
 	};
-	return constraint.closing <= locals.reservation_date ||
-		constraint.opening >= locals.reservation_date
+	return constraint.closing <= locals.resDate.getTime() ||
+		constraint.opening >= locals.resDate.getTime()
 		? next({
 				status: 400,
 				message: `Reservations are available from 10:30am to 9:30pm`,
@@ -129,33 +97,6 @@ function isAvailable(req, res, next) {
 		  })
 		: next();
 }
-async function reservationExists(req, res, next) {
-	const { reservation_id } = req.params;
-
-	const reservation = await service.read(reservation_id);
-	if (reservation) {
-		res.locals.reservation = reservation;
-		return next();
-	}
-	next({
-		status: 404,
-		message: `Reservation ${reservation_id} cannot be found.`,
-	});
-}
-function getDate(date) {
-	return `${date.getFullYear().toString(10)}-${(date.getMonth() + 1)
-		.toString(10)
-		.padStart(2, "0")}-${date.getDate().toString(10).padStart(2, "0")}`;
-}
-async function read(req, res) {
-	const { reservation } = res.locals;
-	const data = {
-		...reservation,
-		reservation_date: getDate(reservation.reservation_date),
-	};
-	res.json({ data });
-}
-
 function hasStatus(req, res, next) {
 	const { data = {} } = req.body;
 	if (data.status) {
@@ -181,6 +122,45 @@ function unfinishedReservationOnly(req, res, next) {
 		? next({ status: 400, message: "This reservation is already finished." })
 		: next();
 }
+function read(req, res) {
+	const { reservation } = res.locals;
+	const { reservation_date } = reservation;
+	const data = {
+		...reservation,
+		reservation_date: reservation_date.toISOString().split("T")[0],
+	};
+	res.json({ data });
+}
+
+/**All below must be wrapped in asyncBoundary */
+async function listAll(req, res) {
+	const { date, mobileNumber } = res.locals;
+	const data = !mobileNumber
+		? await service.list(date)
+		: await service.searchList(mobileNumber);
+	res.json({ data });
+}
+
+async function createReservation(req, res) {
+	let reservation = req.body.data;
+	reservation = { ...reservation, status: "booked" };
+	const data = await service.create(reservation);
+	res.status(201).json({ data });
+}
+async function reservationExists(req, res, next) {
+	const { reservation_id } = req.params;
+
+	const reservation = await service.read(reservation_id);
+	if (reservation) {
+		res.locals.reservation = reservation;
+		return next();
+	}
+	next({
+		status: 404,
+		message: `Reservation ${reservation_id} cannot be found.`,
+	});
+}
+
 async function updateStatus(req, res) {
 	const { status, reservation } = res.locals;
 	const updatedReservation = {
@@ -202,7 +182,6 @@ async function update(req, res) {
 module.exports = {
 	list: [queryDate, queryMobile, asyncErrorBoundary(listAll)],
 	create: [
-		validProps,
 		checkReqProps,
 		partySize,
 		valiDate,
@@ -212,7 +191,7 @@ module.exports = {
 		isAvailable,
 		asyncErrorBoundary(createReservation),
 	],
-	read: [asyncErrorBoundary(reservationExists), asyncErrorBoundary(read)],
+	read: [asyncErrorBoundary(reservationExists), read],
 	updateStatus: [
 		hasStatus,
 		validStatus,
@@ -222,7 +201,6 @@ module.exports = {
 	],
 	update: [
 		asyncErrorBoundary(reservationExists),
-		validProps,
 		checkReqProps,
 		partySize,
 		valiDate,

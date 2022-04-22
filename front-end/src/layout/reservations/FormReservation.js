@@ -1,10 +1,17 @@
-import React, { useState } from "react";
-import { useHistory } from "react-router";
-import { createReservation } from "../../utils/api";
+import React, { useState, useEffect } from "react";
+import { useParams, useHistory } from "react-router";
+import {
+	createReservation,
+	readReservation,
+	updateReservation,
+} from "../../utils/api";
 import { valiDate } from "../../utils/date-time";
 import ErrorAlert from "../ErrorAlert";
 
-export const NewReservation = () => {
+export const FormReservation = () => {
+	const reservationId = useParams().reservationId;
+	let history = useHistory();
+
 	const [error, setError] = useState();
 	const [reservation, setReservation] = useState({
 		first_name: "",
@@ -15,29 +22,58 @@ export const NewReservation = () => {
 		people: 0,
 		status: "booked",
 	});
-	let history = useHistory();
+
+	useEffect(
+		function loadReservation() {
+			if (reservationId) {
+				const abortController = new AbortController();
+				readReservation(reservationId, abortController.signal)
+					.then(setReservation)
+					.catch(setError);
+
+				return () => abortController.abort();
+			}
+		},
+		[reservationId]
+	);
 	async function submitHandler(e) {
+		setError(null);
 		e.preventDefault();
 		let dateCheck = valiDate(reservation, setError);
-		if (dateCheck) {
-			setReservation(dateCheck);
-		} else {
+		
+		if (!dateCheck) {
 			setError("Only business hours of future dates available.");
+			return;
+		} else {
+			setReservation(dateCheck);
 		}
-
-		const { signal, abort } = new AbortController();
-		await createReservation(reservation, signal)
-			.then(() =>
-				history.push(`/dashboard?date=${reservation.reservation_date}`)
+		if (reservationId) {
+			const abortController = new AbortController();
+			await updateReservation(
+				reservation,
+				reservationId,
+				abortController.signal
 			)
-			.catch(setError);
-		return () => abort();
+				.then(() => {
+					history.push(`/dashboard?date=${reservation.reservation_date}`);
+				})
+				.catch(setError);
+			return () => abortController.abort();
+		} else {
+			const { signal, abort } = new AbortController();
+			await createReservation(reservation, signal)
+				.then(() =>
+					history.push(`/dashboard?date=${reservation.reservation_date}`)
+				)
+				.catch(setError);
+			return () => abort();
+		}
 	}
 	return (
 		<div>
 			{error && <ErrorAlert error={error} />}
 			<div className="container ">
-				<h2>New Reservation</h2>
+				<h2>{reservationId ? "Edit " : "New "} Reservation</h2>
 
 				<form onSubmit={submitHandler} className="mt-3 ">
 					<div className="form-group input-group">
@@ -53,6 +89,7 @@ export const NewReservation = () => {
 							type="text"
 							id="first_name"
 							name="first_name"
+							value={reservation.first_name}
 							onChange={(e) =>
 								setReservation({
 									...reservation,
@@ -73,6 +110,7 @@ export const NewReservation = () => {
 							type="text"
 							id="last_name"
 							name="last_name"
+							value={reservation.last_name}
 							onChange={(e) =>
 								setReservation({
 									...reservation,
@@ -94,6 +132,7 @@ export const NewReservation = () => {
 							placeholder="123-456-7890"
 							id="mobile_number"
 							name="mobile_number"
+							value={reservation.mobile_number}
 							onChange={(e) =>
 								setReservation({
 									...reservation,
@@ -114,6 +153,7 @@ export const NewReservation = () => {
 							// min={today()}
 							id="reservation_date"
 							name="reservation_date"
+							value={reservation.reservation_date}
 							type="date"
 							onChange={(e) => {
 								setReservation({
@@ -136,6 +176,7 @@ export const NewReservation = () => {
 							// max="21:30"
 							id="reservation_time"
 							name="reservation_time"
+							value={reservation.reservation_time}
 							type="time"
 							onChange={(e) =>
 								setReservation({
@@ -154,10 +195,11 @@ export const NewReservation = () => {
 						<input
 							aria-label="people"
 							className="form-control"
-							type="text"
+							type="number"
 							placeholder="Number of people"
 							id="people"
 							name="people"
+							value={reservation.people}
 							onChange={(e) =>
 								setReservation({
 									...reservation,

@@ -11,7 +11,7 @@ function Seat() {
 	const history = useHistory();
 	const { reservationId } = useParams();
 	const [reservation, setReservations] = useState({});
-	const [selectedTable, setSelectedTable] = useState("");
+	const [selectedTable, setSelectedTable] = useState(1);
 	const [tables, setTables] = useState([]);
 	const [error, setError] = useState(null);
 	useEffect(
@@ -37,6 +37,7 @@ function Seat() {
 	}
 	function handleSubmit(e) {
 		e.preventDefault();
+		
 		const abortController = new AbortController();
 
 		assignTable(
@@ -59,7 +60,10 @@ function Seat() {
 					<h3>Table Selection:</h3>
 					<select
 						name="table_id"
-						onChange={({ target: { value } }) => setSelectedTable(value)}
+						onChange={({ target: { value } }) => {
+							
+							setSelectedTable(value);
+						}}
 						id="inputState"
 						value={selectedTable}
 						className="form-control"

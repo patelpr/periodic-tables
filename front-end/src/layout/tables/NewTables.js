@@ -14,7 +14,7 @@ export const NewTables = () => {
 		const abortController = new AbortController();
 		createTable(table, abortController.signal)
 			.then(() => {
-				console.log(table);
+				
 
 				history.push("/dashboard");
 			})

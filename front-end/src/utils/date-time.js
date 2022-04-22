@@ -81,14 +81,10 @@ export function next(currentDate) {
 	return asDateString(date);
 }
 
-export function valiDate(res, setError) {
+export function valiDate(res) {
 	const { reservation_date, reservation_time } = res;
-	let resDate;
-	let year;
-	let month;
-	let day;
+	let year, month, day;
 	let [hour, min] = reservation_time.split(":");
-
 	if (reservation_date.includes("-")) {
 		[year, month, day] = reservation_date.split("-");
 	} else {
@@ -97,28 +93,34 @@ export function valiDate(res, setError) {
 		month = flat[0];
 		day = flat[1];
 	}
-	resDate = new Date(year, month - 1, day, hour, min, "00");
+	let resDate = new Date(Date.UTC(year, month - 1, day, hour, min));
 	let constraint = {
 		opening: new Date(
-			resDate.getFullYear(),
-			resDate.getMonth(),
-			resDate.getDate(),
-			10,
-			30
-		),
+			Date.UTC(
+				resDate.getUTCFullYear(),
+				resDate.getUTCMonth(),
+				resDate.getUTCDate(),
+				10,
+				30
+			)
+		).getTime(),
 		closing: new Date(
-			resDate.getFullYear(),
-			resDate.getMonth(),
-			resDate.getDate(),
-			21,
-			30
-		),
+			Date.UTC(
+				resDate.getUTCFullYear(),
+				resDate.getUTCMonth(),
+				resDate.getUTCDate(),
+				21,
+				30
+			)
+		).getTime(),
+		now: new Date().getTime(),
 	};
 	res = { ...res, reservation_date: resDate.toISOString().split("T")[0] };
-	return constraint.closing < resDate ||
-		constraint.opening > resDate ||
-		resDate.getDay() === 2 ||
-		resDate.getTime() < Date.now()
+	
+	return constraint.closing <= resDate.getTime() ||
+		constraint.opening >= resDate.getTime() ||
+		resDate.getUTCDay() === 2 ||
+		resDate.getTime() <= constraint.now
 		? null
 		: res;
 }
