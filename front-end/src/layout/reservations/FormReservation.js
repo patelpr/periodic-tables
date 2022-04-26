@@ -42,7 +42,7 @@ export const FormReservation = () => {
 		let dateCheck = valiDate(reservation, setError);
 		
 		if (!dateCheck) {
-			setError("Only business hours of future dates available.");
+			setError({message:"Only business hours of future dates available."});
 			return;
 		} else {
 			setReservation(dateCheck);
