@@ -67,7 +67,7 @@ function withinHours(req, { locals }, next) {
 				locals.resDate.getUTCMonth(),
 				locals.resDate.getUTCDate(),
 				10,
-				30
+				29,59
 			)
 		).getTime(),
 		closing: new Date(
@@ -76,7 +76,7 @@ function withinHours(req, { locals }, next) {
 				locals.resDate.getUTCMonth(),
 				locals.resDate.getUTCDate(),
 				21,
-				30
+				29,59
 			)
 		).getTime(),
 	};

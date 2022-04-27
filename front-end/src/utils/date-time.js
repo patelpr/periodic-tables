@@ -101,7 +101,7 @@ export function valiDate(res) {
 				resDate.getUTCMonth(),
 				resDate.getUTCDate(),
 				10,
-				30
+				29,59
 			)
 		).getTime(),
 		closing: new Date(
@@ -110,7 +110,7 @@ export function valiDate(res) {
 				resDate.getUTCMonth(),
 				resDate.getUTCDate(),
 				21,
-				30
+				29,59
 			)
 		).getTime(),
 		now: new Date().getTime(),
