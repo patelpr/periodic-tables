@@ -37,37 +37,31 @@ export const FormReservation = () => {
 		[reservationId]
 	);
 	async function submitHandler(e) {
-		setError(null);
-		e.preventDefault();
-		let dateCheck = valiDate(reservation, setError);
-		
-		if (!dateCheck) {
-			setError({message:"Only business hours of future dates available."});
-			return;
-		} else {
-			setReservation(dateCheck);
-		}
-		if (reservationId) {
-			const abortController = new AbortController();
-			await updateReservation(
-				reservation,
-				reservationId,
-				abortController.signal
-			)
-				.then(() => {
-					history.push(`/dashboard?date=${reservation.reservation_date}`);
-				})
-				.catch(setError);
-			return () => abortController.abort();
-		} else {
-			const { signal, abort } = new AbortController();
-			await createReservation(reservation, signal)
-				.then(() =>
-					history.push(`/dashboard?date=${reservation.reservation_date}`)
+		try{		setError(null);
+			e.preventDefault();
+			let dateCheck = valiDate(reservation, setError);
+			
+			if (!dateCheck) {
+				setError({message:"Only business hours of future dates available."});
+				return;
+			} else {
+				setReservation(dateCheck);
+			}
+			if (reservationId) {
+				const { signal, abort } = new AbortController();
+				await updateReservation(
+					reservation,
+					reservationId,
+					signal
 				)
-				.catch(setError);
-			return () => abort();
-		}
+				return () => abort();
+			} else {
+				const { signal, abort } = new AbortController();
+				await createReservation(reservation, signal)
+				history.push(`/dashboard?date=${reservation.reservation_date}`)
+				return () => abort();
+			}}catch(setError){}
+
 	}
 	return (
 		<div>
