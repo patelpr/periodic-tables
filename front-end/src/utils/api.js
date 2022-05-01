@@ -92,7 +92,7 @@ export async function createReservation(reservation, signal) {
     },
     {}
   );
-}catch(err){
+}catch(error){
 			if (error.name !== "AbortError") {
 				console.error(error.stack);
 				throw error;
@@ -106,7 +106,7 @@ export async function readReservation(id, signal) {
 
   const url = `${API_BASE_URL}/reservations/${id}`;
   return await fetchJson(url, { signal }, {});
-}catch(err){
+}catch(error){
 			if (error.name !== "AbortError") {
 				console.error(error.stack);
 				throw error;
@@ -126,7 +126,7 @@ export async function changeStatus(id, status, signal) {
     signal,
   };
   return await fetchJson(url, options, { status });
-}catch(err){
+}catch(error){
 			if (error.name !== "AbortError") {
 				console.error(error.stack);
 				throw error;
@@ -151,7 +151,7 @@ export async function updateReservation(reservation, reservation_id, signal) {
     },
     { ...reservation }
   );
-}catch(err){
+}catch(error){
 			if (error.name !== "AbortError") {
 				console.error(error.stack);
 				throw error;
@@ -177,7 +177,7 @@ export async function createTable(table, signal) {
     signal,
   };
   return await fetchJson(url, options, {});
-}catch(err){
+}catch(error){
 			if (error.name !== "AbortError") {
 				console.error(error.stack);
 				throw error;
@@ -191,7 +191,7 @@ export async function listTables(signal) {
 
   const url = new URL(`${API_BASE_URL}/tables`);
   return await fetchJson(url, { signal }, []);
-}catch(err){
+}catch(error){
 			if (error.name !== "AbortError") {
 				console.error(error.stack);
 				throw error;
@@ -205,7 +205,7 @@ export async function listTablesAvailable(params, signal) {
 
   const url = new URL(`${API_BASE_URL}/tables/free`);
   return await fetchJson(url, { headers, signal }, []);
-}catch(err){
+}catch(error){
 			if (error.name !== "AbortError") {
 				console.error(error.stack);
 				throw error;
@@ -225,7 +225,7 @@ export async function assignTable(reservation_id, table_id, signal) {
     signal,
   };
   return await fetchJson(url, options, { reservation_id });
-}catch(err){
+}catch(error){
 			if (error.name !== "AbortError") {
 				console.error(error.stack);
 				throw error;
@@ -244,7 +244,7 @@ export async function removeTable(table_id, signal) {
     signal,
   };
   return await fetchJson(url, options);
-}catch(err){
+}catch(error){
 	if (error.name !== "AbortError") {
 		console.error(error.stack);
 		throw error;

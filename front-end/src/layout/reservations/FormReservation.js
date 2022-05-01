@@ -1,73 +1,10 @@
 import React, { useState, useEffect } from "react";
-import { useParams, useHistory } from "react-router";
-import {
-	createReservation,
-	readReservation,
-	updateReservation,
-} from "../../utils/api";
-import { valiDate } from "../../utils/date-time";
-import ErrorAlert from "../ErrorAlert";
 
-export const FormReservation = () => {
-	const reservationId = useParams().reservationId;
-	let history = useHistory();
 
-	const [error, setError] = useState();
-	const [reservation, setReservation] = useState({
-		first_name: "",
-		last_name: "",
-		mobile_number: "",
-		reservation_time: "",
-		reservation_date: "",
-		people: 0,
-		status: "booked",
-	});
+export const FormReservation = ({submitHandler,reservation,setReservation}) => {
 
-	useEffect(
-		function loadReservation() {
-			if (reservationId) {
-				const abortController = new AbortController();
-				readReservation(reservationId, abortController.signal)
-					.then(setReservation)
-					.catch(setError);
-
-				return () => abortController.abort();
-			}
-		},
-		[reservationId]
-	);
-	async function submitHandler(e) {
-		try{		setError(null);
-			e.preventDefault();
-			let dateCheck = valiDate(reservation, setError);
-			
-			if (!dateCheck) {
-				setError({message:"Only business hours of future dates available."});
-				return;
-			} else {
-				setReservation(dateCheck);
-			}
-			if (reservationId) {
-				const { signal, abort } = new AbortController();
-				await updateReservation(
-					reservation,
-					reservationId,
-					signal
-				)
-				return () => abort();
-			} else {
-				const { signal, abort } = new AbortController();
-				await createReservation(reservation, signal)
-				history.push(`/dashboard?date=${reservation.reservation_date}`)
-				return () => abort();
-			}}catch(setError){}
-
-	}
 	return (
-		<div>
-			{error && <ErrorAlert error={error} />}
 			<div className="container ">
-				<h2>{reservationId ? "Edit " : "New "} Reservation</h2>
 
 				<form onSubmit={submitHandler} className="mt-3 ">
 					<div className="form-group input-group">
@@ -214,6 +151,5 @@ export const FormReservation = () => {
 					</button>
 				</form>
 			</div>
-		</div>
 	);
 };
