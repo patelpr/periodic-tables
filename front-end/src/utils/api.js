@@ -66,12 +66,12 @@ export async function listReservations(params, signal) {
     return await fetchJson(url, { headers, signal }, [])
       .then(formatReservationDate)
       .then(formatReservationTime);
-  } catch (err) {
+  } catch (error) {
     if (error.name !== "AbortError") {
       console.error(error.stack);
       throw error;
     }
-    return Promise.resolve(onCancel);
+    return 
   }
 }
 /** ADDED TO API */
@@ -97,7 +97,7 @@ export async function createReservation(reservation, signal) {
 				console.error(error.stack);
 				throw error;
 			}
-			return Promise.resolve(onCancel);
+			return 
 		}
 }
 /**RESERVATION BY ID */
@@ -111,7 +111,7 @@ export async function readReservation(id, signal) {
 				console.error(error.stack);
 				throw error;
 			}
-			return Promise.resolve(onCancel);
+			return 
 		}
 }
 /**RESERVATION STATUS CHANGE */
@@ -131,7 +131,7 @@ export async function changeStatus(id, status, signal) {
 				console.error(error.stack);
 				throw error;
 			}
-			return Promise.resolve(onCancel);
+			return 
 		}
 }
 
@@ -156,7 +156,7 @@ export async function updateReservation(reservation, reservation_id, signal) {
 				console.error(error.stack);
 				throw error;
 			}
-			return Promise.resolve(onCancel);
+			return 
 		}
 }
 
@@ -182,7 +182,7 @@ export async function createTable(table, signal) {
 				console.error(error.stack);
 				throw error;
 			}
-			return Promise.resolve(onCancel);
+			return 
 		}
 }
 /**LIST TABLES */
@@ -196,7 +196,7 @@ export async function listTables(signal) {
 				console.error(error.stack);
 				throw error;
 			}
-			return Promise.resolve(onCancel);
+			return 
 		}
 }
 /**TABLES AVAILABLE */
@@ -210,7 +210,7 @@ export async function listTablesAvailable(params, signal) {
 				console.error(error.stack);
 				throw error;
 			}
-			return Promise.resolve(onCancel);
+			return 
 		}
 }
 /** TABLE ASSIGNMENT BY RESERVATION ID AND TABLE ID */
@@ -230,7 +230,7 @@ export async function assignTable(reservation_id, table_id, signal) {
 				console.error(error.stack);
 				throw error;
 			}
-			return Promise.resolve(onCancel);
+			return 
 		}
 }
 
@@ -249,7 +249,7 @@ export async function removeTable(table_id, signal) {
 		console.error(error.stack);
 		throw error;
 	}
-	return Promise.resolve(onCancel);
+	return 
 }
 }
 /** ************TABLE API ENDS HERE************** */

@@ -51,6 +51,7 @@ export const EditReservation = () => {
       if (reservationId) {
         const { signal, abort } = new AbortController();
         await updateReservation(reservation, reservationId, signal);
+        history.push(`/dashboard?date=${reservation.reservation_date}`)
         return () => abort();
       }
     } catch (setError) {}

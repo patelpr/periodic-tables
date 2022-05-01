@@ -134,7 +134,7 @@ describe("US-08 - Change an existing reservation - E2E", () => {
     });
   });
 
-  describe("/reservations/:reservation_id/edit page", () => {
+  describe("/reservations/:reservationId/edit page", () => {
     beforeEach(async () => {
       await page.goto(`${baseURL}/dashboard`, {
         waitUntil: "networkidle0",
@@ -205,6 +205,6 @@ describe("US-08 - Change an existing reservation - E2E", () => {
       });
 
       await expect(page).toMatch(/John/);
-    });
+    },12000);
   });
 });
