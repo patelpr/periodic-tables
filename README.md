@@ -32,9 +32,6 @@ Please input your postgreSQL database URI string in the .env file as:
     DATABASE_URL_DEVELOPMENT=enter-your-development-database-url-here
     DATABASE_URL_TEST=enter-your-test-database-url-here
     DATABASE_URL_PREVIEW=enter-your-preview-database-url-here
-##### or
-
-> Run a local server of postgreSQL  
 
 then from the command line run
 
