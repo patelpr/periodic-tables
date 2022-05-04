@@ -1,4 +1,4 @@
-## PROBLEM
+# Periodic Tables
 
 A restaurant manager reached out and wanted an application to manage reservations and available seating at a restaurant.  
 
