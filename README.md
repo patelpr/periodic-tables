@@ -11,15 +11,15 @@ They want the ability to search for a reservation by phone number (partial or co
 
 ## TECH USED
 Click Frontend or Backend to view the App results.
-| [Frontend](https://periodic-tables-front.herokuapp.com/)| [Backend](https://periodic-tables-back.herokuapp.com/reservations)|
-|--|--|
-| React  | Node.js |
-|React-Router|Express|
-|React-Hooks|Knex |
-|Javascript|Cors|
-|HTML / JSX|Dotenv|
-|CSS||
-|Bootstrap||
+| [Frontend](https://periodic-tables-front.herokuapp.com/)| [Backend](https://periodic-tables-back.herokuapp.com/reservations)|Testing|
+|--|--|--|
+| React  | Node.js |Jest|
+|React-Router|Express|Puppeteer|
+|React-Hooks|Knex ||
+|Javascript|Cors||
+|HTML / JSX|Dotenv||
+|CSS|||
+|Bootstrap|||
 
 ## INSTALLATION
 
