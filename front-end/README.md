@@ -4,7 +4,7 @@ This starter code for the backend of the capstone project in the Thinkful curric
 
 See [../README.md](../README.md) for detailed instructions.
 
-## SCREENSHOTS
+## SCREENSHOTS FROM PUPPETEER
 
 ### Dashboard with Reservations  
 ![Dashboard with Reservations](https://user-images.githubusercontent.com/28286430/166641183-e8a5a945-545b-40b2-ae38-e13c3c078c0c.png)
