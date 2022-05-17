@@ -1,4 +1,4 @@
-# Restaurant Reservation System Backend
+# Periodic Tables Backend
 
 See [../README.md](../README.md) for detailed instructions.
 
